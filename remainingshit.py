@@ -1,9 +1,5 @@
 
-        self.genders = ["male","female","neuter"]
-        self.tags = {"Mistress":"female"}
-        self.cleantags = {"sir":"male"}
         self.salt = b"hugalugalugalug"
-        self.users = {}
         self.AddCommand("load",self.Load,80)
         self.AddCommand("reload",self.Load,80)
         self.AddCommand("unload",self.Unload,80)
@@ -24,36 +20,11 @@
         sys.stdout = stdout(sys.stdout,self)
         self.b.ircevents.Connected += self.Join
         
-    def SetGender(self,command):
-        split = command.message.split(" ")
-        if(len(split) < 1):
-            self.b.Msg(command.source,"I am unable to set your gender if you do not specify one, {}".format(self.RandTag(command.nick)))
-        elif(split[0] not in self.genders):
-            self.b.Msg(command.source,"That is not a valid gender, {}, please choose {}, {} or {}.".format(self.RandTag(command.nick),self.genders[0],self.genders[1],self.genders[2]))
-        else:
-            self.usergender[self.b.GetNickMask(command.nick)] = split[0]
-            c = self.conn.cursor()
-            c.execute("UPDATE `bot_users` SET `user_gender`=%s WHERE `user_id`=%s",(split[0],self.userids[self.b.GetNickMask(command.nick)]))
-            c.close()
-            self.b.Msg(command.source,"I have successfully set your gender, {}".format(self.RandTag(command.nick)))
-    def SetTag(self,command):
-        split = command.message.split(" ")
-        if(len(split) < 1):
-            self.usertags[self.b.GetNickMask(command.nick)] = None
-            c = self.conn.cursor()
-            c.execute("UPDATE `bot_users` SET `user_tag`=Null WHERE `user_id`=%s",(self.userids[self.b.GetNickMask(command.nick)]))
-            c.close()
-            self.b.Msg(command.source,"I have reset your tag, {}".format(self.RandTag(command.nick)))
-        else:
-            self.usertags[self.b.GetNickMask(command.nick)] = split[0]
-            c = self.conn.cursor()
-            c.execute("UPDATE `bot_users` SET `user_tag`=%s WHERE `user_id`=%s",(split[0],self.userids[self.b.GetNickMask(command.nick)]))
-            c.close()
-            self.b.Msg(command.source,"I have successfully set your tag, {}".format(self.RandTag(command.nick)))
+
     def Load(self,command):
         split = command.message.split(" ")
         if(split[0] == "@all"):
-            self.b.Msg(command.source,"I have successfully loaded {} modules for you, {}".format(self.LoadAll(),self.RandTag(command.nick)))
+            self.b.Msg(command.source,"I have successfully loaded {} plugins for you, {}".format(self.LoadAll(),self.RandTag(command.nick)))
         else:
             if(self.ForceLoad(split[0])):
                 self.b.Msg(command.source,"I have successfully loaded the module: {} for you, {}.".format(split[0],self.RandTag(command.nick)))
@@ -67,25 +38,6 @@
                 self.b.Msg(command.source,"I have successfully loaded the module you requested, {}!".format(self.RandTag(command.nick)))
             except:
                 self.b.Msg(command.source,"I am unable to load that particular module, {}.".format(self.RandTag(command.nick)))
-    def RandTag(self,nick=None):
-        mask = self.b.GetNickMask(nick)
-        if(mask in self.users):
-            if(mask in self.usertags):
-                return self.usertags[mask]
-            elif(mask in self.usergender):
-                return self.RandTagGender(self.usergender[mask])
-        else:
-            if(constants.kinky):
-                return random.choice(list(self.tags.keys()))
-            else:
-                return random.choice(self.cleantags)
-    def RandTagGender(self,gender):
-        tag = ""
-        for i in range(1,20):
-            tag = random.choice(list(self.tags.keys()))
-            if(self.tags[tag] == gender):
-                break
-        return tag
     def AddCommand(self,command,callback,level = None):
         if(command not in self.commands.keys()):
             self.commands[command] = self.GetCommand(command)
@@ -155,14 +107,6 @@
             return True
         else:
             return False
-    def Join(self):
-        for i in self.channels:
-            self.b.Join(i)    def GetLevel(self,nick):
-        mask = self.b.GetNickMask(nick)
-        if(mask in self.users.keys()):
-            return self.users[mask]
-        else:
-            return 0
     def SQLCheck(self,channel,nick):
         c = self.conn.cursor()
         try:
@@ -241,29 +185,6 @@
                 pass
             finally:
                 c.close()
-    def SetAdmin(self,command):
-        split = command.message.split(" ")
-        if(len(split)==2):
-            self.SetLevel(split[0],int(split[1]))
-            self.b.Msg(command.source, "I have successfully set {}'s user level to {}, {}".format(split[0],split[1],self.RandTag(command.nick)))
-        else:
-            self.b.Msg(command.source, "Please use: {}SetAdmin <name> <level>, {}".format(self.commandtag,self.RandTag(command.nick)))
-    def SetLevel(self,name,level):
-        mask = self.FindNameKey(name)
-        if(mask != None):
-            self.users[mask] = level
-        c = self.conn.cursor()
-        try:
-            c.execute("UPDATE `bot_users` SET `user_admin`=%s WHERE `user_name`=%s",(level,name))
-        except:
-            pass
-        finally:
-            c.close()
-    def FindNameKey(self,name):
-        if(name in self.usernames.values()):
-            for k,v in self.usernames.items():
-                if(v==name):
-                    return k
     def LoggedIn(self,nick,level):
         self.b.Msg(nick,"You have successfully logged in at access level: {}, {}".format(level,self.RandTag(nick)))
         c = self.conn.cursor()
