@@ -19,25 +19,7 @@
         self.commands = {}
         sys.stdout = stdout(sys.stdout,self)
         self.b.ircevents.Connected += self.Join
-        
 
-    def Load(self,command):
-        split = command.message.split(" ")
-        if(split[0] == "@all"):
-            self.b.Msg(command.source,"I have successfully loaded {} plugins for you, {}".format(self.LoadAll(),self.RandTag(command.nick)))
-        else:
-            if(self.ForceLoad(split[0])):
-                self.b.Msg(command.source,"I have successfully loaded the module: {} for you, {}.".format(split[0],self.RandTag(command.nick)))
-            else:
-                self.b.Msg(command.source,"I was unable to load that module, {}, perhaps it does not exist?".format(self.RandTag(command.nick)))
-    def Unload(self,command):
-        split = command.message.split(" ")
-        if(split[0] in self.instances.keys()):
-            try:
-                self.instances[split[0]].Exit()
-                self.b.Msg(command.source,"I have successfully loaded the module you requested, {}!".format(self.RandTag(command.nick)))
-            except:
-                self.b.Msg(command.source,"I am unable to load that particular module, {}.".format(self.RandTag(command.nick)))
     def AddCommand(self,command,callback,level = None):
         if(command not in self.commands.keys()):
             self.commands[command] = self.GetCommand(command)

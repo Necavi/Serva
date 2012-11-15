@@ -40,9 +40,32 @@ class pluginmanager:
             self.main.LogError()
         return success
 
+    def Unload(self, name):
+        if name in self.instances.keys():
+            self.instances[name].OnDisable()
+            del self.instances[name]
+
     def FindPlugin(self, name):
         if name in self.instances.keys():
             return self.instances[name]
 
     def PluginExists(self, name):
         return name in self.instances.keys()
+
+    def Load(self,command):
+        split = command.message.split(" ")
+        user = self.main.um.users[command.nick]
+        if split[0] == "@all":
+            self.main.b.Msg(command.source,"I have successfully loaded {} plugins for you, {}".format(self.LoadAll(),user.RandTag()))
+        else:
+            if self.Load(split[0]):
+                self.main.b.Msg(command.source,"I have successfully loaded the module: {} for you, {}.".format(split[0],user.RandTag()))
+            else:
+                self.main.b.Msg(command.source,"I was unable to load that module, {}, perhaps it does not exist?".format(user.RandTag()))
+
+    def Unload(self,command):
+        split = command.message.split(" ")
+        user = self.main.um.users[command.nick]
+        if split[0] in self.instances.keys():
+            self.Unload(split[0])
+            self.main.b.Msg(command.source,"I have successfully unloaded the module you requested, {}!".format(user.RandTag()))
