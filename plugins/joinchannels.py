@@ -1,5 +1,5 @@
 import constants
-import plugin
-class joichannels(plugin.plugin):
+import plugintemplate
+class joichannels(plugintemplate.plugin):
     def __init__(self):
         self.main.b.Join(", ".join(constants.channels))

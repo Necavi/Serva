@@ -2,10 +2,8 @@ from Libraries import biblib
 from threading import Timer
 import constants
 import os
-import sys
 import traceback
-import pluginmanager
-from plugins import usermanager
+from managers import pluginmanager, usermanager, commandmanager, eventmanager
 
 class main:
     def __init__(self):
@@ -18,14 +16,15 @@ class main:
         self.b.ircevents.Connected += self.Connected
         self.pluginmanager = pluginmanager.pluginmanager(self)
         self.usermanager = usermanager.usermanager(self)
-        sys.path.append(os.getcwd() + "/plugins")
+        self.commandmanager = commandmanager.commandmanager(self)
+        self.eventmanager = eventmanager.eventmanager(self)
         
     def Connected(self):
         self.b.PrintCon("Successfully loaded {} plugins!".format(self.pluginmanager.LoadPlugins()))
         
     def LogError(self):
         error = traceback.format_exc()
-        self.b.PrintCon(error)
+        self.b.PrintErr(error)
         self.errorlog.write(error)
         
     def Flush(self):

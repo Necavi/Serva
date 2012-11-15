@@ -77,7 +77,7 @@ class bot:
         self.SendMsg(message)
 
     def Part(self, channel, message = 'Prefectus Leaving!'):
-        self.PrintCon(message)
+        self.Print(message)
         message = 'PART ' + channel + ' :' + message
         self.SendMsg(message)
 
@@ -109,16 +109,20 @@ class bot:
                     message2 = "{} {} {}".format(split[0],split[1],message[:510])
                     message = message[510:]
                     self.messagequeue.appendleft(message2)
-                self.PrintCon(message)
+                self.Print(message)
                 try:
                     self.tsocket.send(bytes(message+"\r\n",'utf-8'))
                 except:
-                    traceback.print_exc()
+                    self.PrintErr(traceback.format_exc())
             time.sleep(0.5)
 
-    def PrintCon(self,message):
+    def Print(self, message):
         time = datetime.now().replace(microsecond=0)
         sys.__stdout__.write("[{}] {}\n".format(time, message))
+
+    def PrintErr(self, message):
+        time = datetime.now().replace(microsecond=0)
+        sys.stderr.write("[{}] {}\n".format(time, message))
 
     def ParseMessage(self, message):
         self.ircevents.Raw(message)
@@ -172,10 +176,10 @@ class bot:
                 if not data:
                     time.sleep(0.1)
                     break
-                self.PrintCon(data)
+                self.Print(data)
                 self.ParseMessage(data)
             except:
-                traceback.print_exc()
+                PrintErr(traceback.print_exc())
             time.sleep(0.01)
 
     def Identify(self, password):
@@ -191,7 +195,7 @@ class bot:
             try:
                 import ssl
             except ImportError:
-                self.PrintCon("Unable to initiated SSL for this server")
+                self.Print("Unable to initiated SSL for this server")
             else:
                 self.tsocket = ssl.wrap_socket(self.tsocket)
         if(identify != None):

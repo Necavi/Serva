@@ -5,3 +5,4 @@ mysqlhost = "localhost"
 ## Choices are: chanmsg, privmsg, or both
 commandtype = "both"
 kinky = True
+commandtag = "!"
