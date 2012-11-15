@@ -1,8 +1,8 @@
 import constants
 import pymysql
-import plugin
+import plugintemplate
 
-class MySQL(plugin.plugin):
+class MySQL(plugintemplate.plugin):
     def __init__(self):
         self.Connect()
         

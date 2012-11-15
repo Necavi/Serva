@@ -1,12 +1,15 @@
 import inspect
 import imp
-import plugin
+import plugintemplate
 import glob
+import sys
+import os
 
 class pluginmanager:
     def __init__(self, main):
         self.main = main
         self.instances = {}
+        sys.path.append(os.getcwd() + "/plugins")
 
     def LoadPlugins(self):
         modules = glob.glob("plugins/*.py")
@@ -26,7 +29,7 @@ class pluginmanager:
                 try:
                     module = imp.load_module(name, file[0], file[1], file[2])
                     for i in inspect.getmembers(module, inspect.isclass):
-                        if isinstance(i, plugin.plugin):
+                        if isinstance(i, plugintemplate.plugin):
                             self.instances[name] = i
                             i.main = self
                             i.OnEnable()

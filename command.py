@@ -17,8 +17,10 @@ class Command:
         self.callbacks = []
         self.modules = []
         self.level = 0
+        self.helptext = ""
+        self.usage = ""
         self.source = None
-        self.nick = None
+        self.user = None
         self.message = None
         
     def AddListener(self, callback, level = None):
