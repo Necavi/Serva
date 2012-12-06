@@ -1,9 +1,8 @@
 import constants
 import pymysql
-import plugintemplate
 
-class MySQL(plugintemplate.plugin):
-    def __init__(self):
+class mysqlmanager:
+    def __init__(self, main):
         self.Connect()
         
     def Connect(self):
@@ -16,24 +15,24 @@ class MySQL(plugintemplate.plugin):
             return getattr(self.conn,attr)
             
 class Cursor:
-    def __init__(self,handler):
-        self.c = handler.conn.cursor
+    def __init__(self, handler):
+        self.cur = handler.conn.cursor
         self.handler = handler
         self.timesfailed = 0
         
     def execute(self, query, args=None):
         try:
-            x = self.c.execute(query,args)
+            x = self.cur.execute(query,args)
             self.timesfailed = 0
             return x
-        except pymysql.err.OperationalError as err:
+        except pymysql.err.OperationalError:
             if self.timesfailed > 5:
                 return
             else:
-                self.c.close()
+                self.cur.close()
                 self.handler.conn.close()
                 self.handler.Connect()
-                self.c.open()
+                self.cur.open()
                 self.execute(query, args)
                 self.timesfailed += 1
     

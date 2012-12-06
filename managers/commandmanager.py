@@ -45,12 +45,15 @@ class commandmanager:
         self.CheckForCommand(channel,nick,message)
 
     def CheckForCommand(self,source,nick,message):
-        if nick==self.main.nick:
+        if nick == self.main.nick:
             self.main.b.Msg(source,"I am not allowed to run commands.")
             return
         split = message.split(" ")
         try:
-            user = self.main.usermanager.users[nick]
+            try:
+                user = self.main.usermanager.users[nick]
+            except KeyError:
+                return
             if len(split) > 1 and split[0] == (user.nick + ","):
                 if split[1] in self.commands.keys() and self.CheckCommandAccess(user, split[1]):
                     if len(split) > 2:

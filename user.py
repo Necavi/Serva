@@ -8,10 +8,29 @@ class User:
         self.name = None
         self.gender = None
         self.tag = None
+        self.loggedin = False
         self.nick,bang,identhost = host.partition("!")
         self.ident,bang,self.host = identhost.partition("@")
         self.channels = []
         self.chanmodes = {}
+        self.UpdateFromDB()
+
+    def UpdateFromDB(self):
+        cur = self.main.mysqlmanager.conn.cursor()
+        try:
+            cur.execute("SELECT `user_admin`,`user_name`,`user_id`,`user_gender`,`user_tag` FROM `bot_users` WHERE `user_host`=%s",(self.hostmask,))
+            answer = cur.fetchone()
+            if answer:
+                self.level = answer[0]
+                self.name = answer[1]
+                self.id = answer[2]
+                self.gender = answer[3]
+                self.tag = answer[4]
+                self.loggedin = True
+        except:
+            self.LogError()
+        finally:
+            cur.close()
 
     def RandTag(self):
         if self.tag:
