@@ -12,7 +12,6 @@ class usermanager:
         self.main.b.ircevents.Part += self.Part
         self.main.b.ircevents.Quit += self.Quit
         self.main.b.ircevents.Nick += self.Nick
-        self.loginsalt = b"hugalugalugalug"
     
     def Join(self, channel, nick):
         if nick.nick not in self.users.keys():

@@ -10,9 +10,7 @@ class usercommands(plugin):
         self.main.commandmanager.AddCommand("register",self.Register)
         self.main.commandmanager.AddCommand("login",self.Login)
         self.main.commandmanager.AddCommand("reloaduser",self.Reload,80)
-
-    def Register(self, command):
-        pass
+        self.loginsalt = b"hugalugalugalug"
 
     def Reload(self, command):
         pass
@@ -22,34 +20,34 @@ class usercommands(plugin):
         usermanager = self.main.usermanager
         user = usermanager.users[command.nick]
         if len(split) < 1:
-            self.main.b.Msg(command.source,"I am unable to set your gender if you do not specify one, {}".format(user.RandTag()))
+            print(command.source,"I am unable to set your gender if you do not specify one, {}".format(user.RandTag()))
         elif split[0] not in self.main.usermanager.genders:
-            self.main.b.Msg(command.source,"That is not a valid gender, {}, please choose {}, {} or {}.".format(user.RandTag(),usermanager.genders[0],usermanager.genders[1],usermanager.genders[2]))
+            print(command.source,"That is not a valid gender, {}, please choose {}, {} or {}.".format(user.RandTag(),usermanager.genders[0],usermanager.genders[1],usermanager.genders[2]))
         else:
             user.gender = split[0]
             cur = self.main.mysqlmanager.conn.cursor()
             cur.execute("UPDATE `bot_users` SET `user_gender`=%s WHERE `user_id`=%s",(split[0],user.id))
             cur.close()
-            self.main.b.Msg(command.source,"I have successfully set your gender, {}".format(user.RandTag()))
+            print(command.source,"I have successfully set your gender, {}".format(user.RandTag()))
 
     def SetTag(self,command):
         split = command.message.split(" ")
         user = self.main.usermanager.users[command.nick]
         if len(split) < 1:
             user.SetTag(self, None)
-            self.main.b.Msg(command.source,"I have reset your tag, {}".format(user.RandTag()))
+            print(command.source,"I have reset your tag, {}".format(user.RandTag()))
         else:
             user.SetTag(self, split[0])
-            self.main.b.Msg(command.source,"I have successfully set your tag, {}".format(user.RandTag()))
+            print(command.source,"I have successfully set your tag, {}".format(user.RandTag()))
 
     def SetAdmin(self,command):
         split = command.message.split(" ")
         user = self.main.usermanager.users[command.nick]
         if len(split) == 2:
             user.SetLevel(split[0], int(split[1]))
-            self.main.b.Msg(command.source, "I have successfully set {}'s user level to {}, {}".format(split[0], split[1], user.RandTag()))
+            print(command.source, "I have successfully set {}'s user level to {}, {}".format(split[0], split[1], user.RandTag()))
         else:
-            self.main.b.Msg(command.source, "Please use: {}SetAdmin <name> <level>, {}".format(self.main.commandmanager.commandtag, user.RandTag()))
+            print(command.source, "Please use: {}SetAdmin <name> <level>, {}".format(self.main.commandmanager.commandtag, user.RandTag()))
 
     def Login(self, command):
         if not command.user.loggedin:
@@ -68,40 +66,40 @@ class usercommands(plugin):
                         self.tag = answer[4]
                         self.loggedin = True
                     else:
-                        self.main.b.Msg(command.nick,"That password was incorrect, {}".format(command.user.RandTag()))
+                        print(command.nick,"That password was incorrect, {}".format(command.user.RandTag()))
                 except:
-                    self.main.b.Msg(command.nick, "I was unable to find your account, {}, please try again.".format(command.user.RandTag()))
+                    print(command.nick, "I was unable to find your account, {}, please try again.".format(command.user.RandTag()))
                     self.main.LogError()
                 finally:
                     cur.close()
             else:
-                self.main.b.Msg(command.nick, "Please use: {}login <name> <password>, {}".format(self.main.commandmanager.commandtag, command.user.RandTag()))
+                print(command.nick, "Please use: {}login <name> <password>, {}".format(self.main.commandmanager.commandtag, command.user.RandTag()))
         else:
-            self.main.b.Msg(command.nick,"You are already logged in, {}".format(command.user.RandTag()))
+            print(command.nick,"You are already logged in, {}".format(command.user.RandTag()))
 
-        def Register(self, command):
-            if not command.user.loggedin:
-                split = command.message.split(" ")
-                if len(split) == 2:
-                    cur = self.main.mysqlmanager.conn.cursor()
-                    hash = hashlib.sha512(self.salt + split[1].encode('utf-8'))
-                    try:
-                        cur.execute("INSERT INTO `bot_users`(`user_name`,`user_password`) values(%s,%s)",(split[0], hash.hexdigest()))
-                        command.user.SetLevel(10)
-                        command.user.name = split[0]
-                        command.user.id = cur.lastrowid
-                        self.LoggedIn(command.user)
-                    except pymysql.err.IntegrityError:
-                        self.b.Msg(command.nick, "That name is already taken, please choose a different one, {}.".format(self.RandTag(command.nick)))
-                    finally:
-                        cur.close()
-                else:
-                    self.b.Msg(command.nick,"Please use: {}register <name> <password>, {}.".format(self.commandtag,self.RandTag(command.nick)))
+    def Register(self, command):
+        if not command.user.loggedin:
+            split = command.message.split(" ")
+            if len(split) == 2:
+                cur = self.main.mysqlmanager.conn.cursor()
+                hash = hashlib.sha512(self.salt + split[1].encode('utf-8'))
+                try:
+                    cur.execute("INSERT INTO `bot_users`(`user_name`,`user_password`) values(%s,%s)",(split[0], hash.hexdigest()))
+                    command.user.SetLevel(10)
+                    command.user.name = split[0]
+                    command.user.id = cur.lastrowid
+                    self.LoggedIn(command.user)
+                except pymysql.err.IntegrityError:
+                    print(command.nick, "That name is already taken, please choose a different one, {}.".format(command.user.RandTag()))
+                finally:
+                    cur.close()
             else:
-                self.b.Msg(command.nick,"You are already logged in, {}.".format(self.RandTag(command.nick)))
+                print(command.nick,"Please use: {}register <name> <password>, {}.".format(self.main.commandmanager.commandtag,command.user.RandTag()))
+        else:
+            print(command.nick,"You are already logged in, {}.".format(command.user.RandTag()))
 
     def LoggedIn(self, user):
-        self.main.b.Msg(user.nick,"You have successfully logged in at access level: {}, {}.".format(user.level, user.RandTag()))
+        print(user.nick,"You have successfully logged in at access level: {}, {}.".format(user.level, user.RandTag()))
         cur = self.main.mysqlmanager.conn.cursor()
         cur.execute("UPDATE `bot_users` SET `user_host`=%s WHERE `user_id`=%s",(user.hostmask, user.id))
         cur.close()
