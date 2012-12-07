@@ -1,8 +1,4 @@
 from user import User
-import hashlib
-import pymysql
-
-
 
 class usermanager:
     genders = ["male","female","neutral"]
@@ -16,7 +12,6 @@ class usermanager:
         self.main.b.ircevents.Part += self.Part
         self.main.b.ircevents.Quit += self.Quit
         self.main.b.ircevents.Nick += self.Nick
-        self.commands = commands(main)
         self.loginsalt = b"hugalugalugalug"
     
     def Join(self, channel, nick):

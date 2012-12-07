@@ -2,7 +2,7 @@ from plugintemplate import plugin
 import hashlib
 import pymysql
 
-class commands(plugin):
+class usercommands(plugin):
     def OnEnable(self):
         self.main.commandmanager.AddCommand("setadmin",self.SetAdmin,80)
         self.main.commandmanager.AddCommand("setgender",self.SetGender,10)
