@@ -167,7 +167,7 @@ class bot:
     def ParseName(self, name):
         nick,ban,identhost = name.partition("!")
         nick = nick.lstrip(":")
-        return nickclass(nick,name)
+        return nickclass(nick, name)
 
     def RecvMgr(self):
         while True:
