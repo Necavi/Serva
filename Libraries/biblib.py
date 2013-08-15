@@ -126,7 +126,7 @@ class bot:
 
     def ParseMessage(self, message):
         self.ircevents.Raw(message)
-        command = message.split(' ')
+        command = message.split(" ")
         if command[0] == "PING":
             message = "PONG " + " ".join(command[1:])
             self.SendMsg(message)
@@ -137,7 +137,6 @@ class bot:
                 self.ircevents.CTCP(command[2], nick, command[3].strip("\x01"), " ".join(command[4:]))
             else:
                 message = " ".join(command[3:])
-                nick = self.ParseName(command[0])
                 self.ircevents.Msg(command[0], message)
                 nick = self.ParseName(command[0])
                 if command[2].startswith("#"):
@@ -165,7 +164,7 @@ class bot:
         return name
 
     def ParseName(self, name):
-        nick,ban,identhost = name.partition("!")
+        nick, bang, identhost = name.partition("!")
         nick = nick.lstrip(":")
         return nickclass(nick, name)
 
@@ -195,7 +194,7 @@ class bot:
             try:
                 import ssl
             except ImportError:
-                self.Print("Unable to initiated SSL for this server")
+                self.Print("Unable to initiate SSL for this server")
             else:
                 self.tsocket = ssl.wrap_socket(self.tsocket)
         if identify is not None:
