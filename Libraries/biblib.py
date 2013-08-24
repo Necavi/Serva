@@ -16,6 +16,15 @@ class nickclass:
     def __repr__(self):
         return self.nick
         
+    def __str__(self):
+        return self.nick
+        
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.nick == other
+        else:
+            return super(object, self).__eq__(other)
+        
 class IRCEvents:
     def __init__(self):
         self.Connected = event.Event()
@@ -54,14 +63,14 @@ class IRCEvents:
     def Nick(self, oldnick, newnick):
         self.Nick(oldnick, newnick)
     
-    def CTCP(self,source, nick, ctcp, message):
-        self.CTCP(source, nick, ctcp, message)
+    def CTCP(self, source, nick, type, message):
+        self.CTCP(source, nick, type, message)
         
-    def Raw(self,message):
+    def Raw(self, message):
         self.Raw(message)
     
-    def Numeric(self, number, message):
-        self.Numeric(number, message)
+    def Numeric(self,number,message):
+        self.Numeric(number,message)
         
 class bot:
     def __init__(self):
@@ -69,6 +78,10 @@ class bot:
         self.send_thread = threading.Thread(target=self.SendMgr, name="send-thread")
         self.ircevents = IRCEvents()
         self.messagequeue = deque()
+        if sys.__stdout__ is None:
+            self.stdout = sys.stdout
+        else:
+            self.stdout = sys.__stdout__
         
     def Join(self, channel):
         message = "JOIN " + channel
@@ -76,37 +89,37 @@ class bot:
         message = "WHO " + channel
         self.SendMsg(message)
 
-    def Part(self, channel, message="Prefectus Leaving!"):
+    def Part(self, channel, message = ""):
         self.Print(message)
-        message = "PART " + channel + " :" + message
+		message = "PART {} :{}".format(channel, message)
         self.SendMsg(message)
 
-    def Action(self, channel, message):
-        message = "PRIVMSG " + channel + " :\x01ACTION " + message + "\x01"
+    def Action(self, target, message):
+        message = "PRIVMSG {} :\x01ACTION {}\x01".format(target, message)
         self.SendMsg(message)
 
-    def Msg(self, channel, message):
-        message = "PRIVMSG " + channel + " :" + message
+    def Msg(self, target, message):
+        message = "PRIVMSG {} :{}".format(target, message)
         self.SendMsg(message)
 
-    def Notice(self, channel, message):
-        message = "NOTICE " + channel + " :" + message
+    def Notice(self, target, message):
+        message = "NOTICE {} :{}".format(target, message)
         self.SendMsg(message)
 
     def Mode(self, channel, mode, message):
-        message = "MODE " + channel + " " + mode + " " + message
+		message = "MODE {} {} {}".format(channel, mode, message)
         self.SendMsg(message)
-
+    
     def SendMsg(self, message):
         self.messagequeue.appendleft(message)
 
     def SendMgr(self):
         while True:
-            if len(self.messagequeue) > 0:
+            if(len(self.messagequeue) > 0):
                 message = self.messagequeue.pop()
-                if len(message) > 510:
+                if(len(message) > 510):
                     split = message.split(" ")
-                    message2 = "{} {} {}".format(split[0], split[1], message[:510])
+                    message2 = "{} {} {}".format(split[0],split[1],message[:510])
                     message = message[510:]
                     self.messagequeue.appendleft(message2)
                 self.Print(message)
@@ -118,7 +131,7 @@ class bot:
 
     def Print(self, message):
         time = datetime.now().replace(microsecond=0)
-        sys.__stdout__.write("[{}] {}\n".format(time, message))
+        self.stdout.write("[{}] {}\n".format(time, message))
 
     def PrintErr(self, message):
         time = datetime.now().replace(microsecond=0)
@@ -127,36 +140,37 @@ class bot:
     def ParseMessage(self, message):
         self.ircevents.Raw(message)
         command = message.split(" ")
-        if command[0] == "PING":
-            message = "PONG " + " ".join(command[1:])
+        if(command[0] == "PING"):
+            message = 'PONG ' + command[1]
             self.SendMsg(message)
-        elif command[1] == "PRIVMSG" or command[1] == "NOTICE":
-            command[3] = command[3].lstrip(":")
-            if command[3].startswith("\x01") and command[3].endswith("\x01"):
-                nick = self.ParseName(command[0])
-                self.ircevents.CTCP(command[2], nick, command[3].strip("\x01"), " ".join(command[4:]))
+        elif(command[1] == "PRIVMSG" or command[1] == "NOTICE"):
+            if(command[3].lstrip(":").startswith("\x01") and command[3].lstrip(":").endswith("\x01")):
+                self.ircevents.CTCP(command[2],self.ParseName(command[0]),command[3].lstrip(":").strip('\x01'),' '.join(command[4:]))
             else:
-                message = " ".join(command[3:])
+                message = command[3].lstrip(':')
+                for i in range(4,len(command)):
+                    message = message + ' ' + command[i]
+                nick = self.ParseName(command[0])
                 self.ircevents.Msg(command[0], message)
                 nick = self.ParseName(command[0])
-                if command[2].startswith("#"):
+                if(command[2].startswith("#")):
                     self.ircevents.ChanMsg(command[2], nick, message)
-                elif command[2] == self.nick:
+                elif(command[2] == self.nick):
                     self.ircevents.PrivMsg(nick, message)
-        elif command[1].isnumeric():
+        elif(command[1].isnumeric()):
             self.ircevents.Numeric(int(command[1])," ".join(command[2:]))
-            if command[1] == "001":
+            if(command[1] == '001'):
                 self.ircevents.Connected()
-        elif command[1] == "JOIN":
+        elif(command[1] == 'JOIN'):
             nick = self.StripTags(self.ParseName(command[0]))
             self.ircevents.Join(command[2], nick)
-        elif command[1] == "PART":
+        elif(command[1] == 'PART'):
             nick = self.ParseName(command[0])
             self.ircevents.Part(command[2], nick)
-        elif command[1] == "QUIT":
+        elif(command[1] == 'QUIT'):
             nick = self.ParseName(command[0])
             self.ircevents.Quit(command[2], nick)
-        elif command[1] == "NICK":
+        elif(command[1] == 'NICK'):
             self.ircevents.Nick(self.ParseName(command[0]), self.ParseName(command[2]))
             
     def StripTags(self, name):
@@ -164,14 +178,14 @@ class bot:
         return name
 
     def ParseName(self, name):
-        nick, bang, identhost = name.partition("!")
+        nick,ban,identhost = name.partition("!")
         nick = nick.lstrip(":")
-        return nickclass(nick, name)
+        return nickclass(nick,name)
 
     def RecvMgr(self):
         while True:
             try:
-                data = self.fsocket.readline().strip().rstrip("\r\n")
+                data = self.fsocket.readline().strip().rstrip('\r\n')
                 if not data:
                     time.sleep(0.1)
                     break
@@ -182,7 +196,7 @@ class bot:
             time.sleep(0.01)
 
     def Identify(self, password):
-        self.Msg("nickserv", "IDENTIFY {!s}".format(password))
+        self.Msg("nickserv", "IDENTIFY {!s}".format(password)) 
 
     def nickserv(self):
         self.Identify(self.identify)
@@ -190,22 +204,22 @@ class bot:
     def initconnection(self, connection, nick, useSSL = False, identify = None):
         self.connection = connection
         self.tsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if useSSL:
+        if(useSSL):
             try:
                 import ssl
             except ImportError:
-                self.Print("Unable to initiate SSL for this server")
+                self.Print("Unable to initiated SSL for this server")
             else:
                 self.tsocket = ssl.wrap_socket(self.tsocket)
-        if identify is not None:
+        if(identify != None):
             self.identify = identify
             self.ircevents.Connected += self.nickserv
         self.tsocket.connect(self.connection)
         self.fsocket = self.tsocket.makefile()
         self.nick = nick
-        self.Print(self.tsocket)
-        self.SendMsg("NICK {}".format(self.nick))
-        self.SendMsg("USER {0} {0} {0} :{0}".format(self.nick))
+        print(self.tsocket)
+        self.SendMsg('NICK {}'.format(self.nick))
+        self.SendMsg('USER {0} {0} {0} :{0}'.format(self.nick))
         self.recv_thread.start()
         self.send_thread.start()
                 
