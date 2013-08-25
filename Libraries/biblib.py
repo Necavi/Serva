@@ -91,7 +91,7 @@ class bot:
 
     def Part(self, channel, message = ""):
         self.Print(message)
-		message = "PART {} :{}".format(channel, message)
+        message = "PART {} :{}".format(channel, message)
         self.SendMsg(message)
 
     def Action(self, target, message):
@@ -107,7 +107,7 @@ class bot:
         self.SendMsg(message)
 
     def Mode(self, channel, mode, message):
-		message = "MODE {} {} {}".format(channel, mode, message)
+        message = "MODE {} {} {}".format(channel, mode, message)
         self.SendMsg(message)
     
     def SendMsg(self, message):
