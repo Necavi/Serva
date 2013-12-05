@@ -4,7 +4,7 @@ import time
 import traceback
 import sys
 
-from Libraries import event
+from . import event
 from datetime import datetime
 from collections import deque
 
