@@ -147,7 +147,7 @@ class bot:
             if(command[3].lstrip(":").startswith("\x01") and command[3].lstrip(":").endswith("\x01")):
                 self.ircevents.CTCP(command[2], self.ParseName(command[0]), command[3].lstrip(":").strip("\x01"), " ".join(command[4:]))
             else:
-                message = command[3].lstrip(":") + " ".join(command[4:])
+                message = command[3].lstrip(":") + " " + " ".join(command[4:])
                 nick = self.ParseName(command[0])
                 self.ircevents.Msg(command[0], message)
                 nick = self.ParseName(command[0])
